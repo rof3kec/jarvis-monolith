@@ -22,16 +22,21 @@ SAMPLE_RATE = 16000
 LOCAL_MODEL_DIR = os.path.join(os.path.dirname(__file__), "models")
 os.makedirs(LOCAL_MODEL_DIR, exist_ok=True)
 
+
 def notify(message):
     try:
         subprocess.run(["notify-send", "-t", "800", "Jarvis", message], check=False)
     except FileNotFoundError:
         pass
 
+
 def play_sound(sound_type):
-    sound_file = f"{os.environ.get('HOME')}/.local/share/voice_assistant/mic_{sound_type}.wav"
+    sound_file = (
+        f"{os.environ.get('HOME')}/.local/share/voice_assistant/mic_{sound_type}.wav"
+    )
     if os.path.exists(sound_file):
         subprocess.Popen(["aplay", "-q", sound_file], stderr=subprocess.DEVNULL)
+
 
 def type_text(text):
     """
@@ -39,29 +44,40 @@ def type_text(text):
     We drop delay to 1ms and hold to 1ms.
     This gives 500 characters per second: blazingly fast but still visually typed out character-by-character.
     """
-    if not text: return
+    if not text:
+        return
     try:
-        subprocess.run(["ydotool", "type", "-d", "1", "-H", "1", text + " "], check=True)
+        subprocess.run(
+            ["ydotool", "type", "-d", "1", "-H", "1", text + " "], check=True
+        )
     except Exception as e:
         print(f"Error typing text: {e}")
         notify("❌ Error: ydotool failed. Is ydotoold running?")
 
+
 class JarvisMonolith:
     def __init__(self):
         print(f"Loading {MODEL_SIZE} into RAM from {LOCAL_MODEL_DIR}...")
-        self.model = WhisperModel(MODEL_SIZE, device=DEVICE, compute_type=COMPUTE_TYPE, 
-                                  cpu_threads=CPU_THREADS, download_root=LOCAL_MODEL_DIR)
+        self.model = WhisperModel(
+            MODEL_SIZE,
+            device=DEVICE,
+            compute_type=COMPUTE_TYPE,
+            cpu_threads=CPU_THREADS,
+            download_root=LOCAL_MODEL_DIR,
+        )
         print("Model loaded. Ready.")
-        
+
         self.keyboards = self.find_keyboards()
         if not self.keyboards:
-            print("WARNING: No keyboards detected via evdev. Are you in the 'input' group?")
+            print(
+                "WARNING: No keyboards detected via evdev. Are you in the 'input' group?"
+            )
             sys.exit(1)
-            
+
         print("Listening on:")
         for kb in self.keyboards:
             print(f" - {kb.name} ({kb.path})")
-        
+
         self.ctrl_held = False
         self.is_recording = False
         self.audio_buffer = []
@@ -90,51 +106,58 @@ class JarvisMonolith:
 
     def start_recording(self):
         with self.lock:
-            if self.is_recording: return
+            if self.is_recording:
+                return
             self.is_recording = True
             self.audio_buffer = []
-            
+
         play_sound("on")
         notify("🔴 Listening...")
         print("\n[Start Recording]")
-        
-        self.stream = sd.InputStream(samplerate=SAMPLE_RATE, channels=1, dtype='int16', callback=self.audio_callback)
+
+        self.stream = sd.InputStream(
+            samplerate=SAMPLE_RATE,
+            channels=1,
+            dtype="int16",
+            callback=self.audio_callback,
+        )
         self.stream.start()
 
     def stop_recording_and_transcribe(self):
         with self.lock:
-            if not self.is_recording: return
+            if not self.is_recording:
+                return
             self.is_recording = False
-            
+
         if self.stream:
             self.stream.stop()
             self.stream.close()
             self.stream = None
-            
+
         play_sound("off")
         notify("⏳ Processing...")
         print("[Stop Recording. Transcribing...]")
-        
+
         with self.lock:
             if not self.audio_buffer:
                 notify("❌ No audio.")
                 return
             audio_data_int16 = np.concatenate(self.audio_buffer, axis=0).flatten()
-            
+
         if len(audio_data_int16) < SAMPLE_RATE * 0.3:
             print("Audio too short, ignoring.")
             return
 
         audio_data_float32 = audio_data_int16.astype(np.float32) / 32768.0
-            
+
         try:
             start_time = time.time()
             segments, _ = self.model.transcribe(audio_data_float32, beam_size=5)
             text = " ".join([s.text for s in segments]).strip()
-            
+
             latency = (time.time() - start_time) * 1000
             print(f"Result ({latency:.0f}ms): {text}")
-            
+
             if text:
                 type_text(text)
                 notify(f"✅ {text}")
@@ -147,22 +170,37 @@ class JarvisMonolith:
     def handle_event(self, event):
         if event.type == ecodes.EV_KEY:
             key_event = evdev.categorize(event)
-            
-            if key_event.keycode in ["KEY_LEFTCTRL", "KEY_RIGHTCTRL"] or (isinstance(key_event.keycode, list) and any("CTRL" in k for k in key_event.keycode)):
+
+            # Use strict string matching for the keycodes to avoid hasattr errors
+            try:
+                # Keycodes can be a single string or a list of strings
+                keycodes = (
+                    [key_event.keycode]
+                    if isinstance(key_event.keycode, str)
+                    else key_event.keycode
+                )
+            except AttributeError:
+                return
+
+            if any("CTRL" in k for k in keycodes):
                 if key_event.keystate == key_event.key_down:
                     self.ctrl_held = True
                 elif key_event.keystate == key_event.key_up:
                     self.ctrl_held = False
                     if self.is_recording:
-                        threading.Thread(target=self.stop_recording_and_transcribe).start()
+                        threading.Thread(
+                            target=self.stop_recording_and_transcribe
+                        ).start()
 
-            if key_event.keycode == "KEY_SPACE" or (isinstance(key_event.keycode, list) and "KEY_SPACE" in key_event.keycode):
+            if any("KEY_SPACE" in k for k in keycodes):
                 if key_event.keystate == key_event.key_down:
                     if self.ctrl_held and not self.is_recording:
                         self.start_recording()
                 elif key_event.keystate == key_event.key_up:
                     if self.is_recording:
-                        threading.Thread(target=self.stop_recording_and_transcribe).start()
+                        threading.Thread(
+                            target=self.stop_recording_and_transcribe
+                        ).start()
 
     def listen_loop(self, device):
         try:
@@ -180,13 +218,14 @@ class JarvisMonolith:
             t = threading.Thread(target=self.listen_loop, args=(kb,), daemon=True)
             t.start()
             threads.append(t)
-            
+
         try:
             while self.keep_running:
                 time.sleep(1)
         except KeyboardInterrupt:
             print("\nShutting down gracefully...")
             self.keep_running = False
+
 
 if __name__ == "__main__":
     try:
