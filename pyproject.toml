@@ -1,0 +1,12 @@
+[project]
+name = "jarvis-monolith"
+version = "1.0.0"
+description = "A zero-latency voice dictation monolith using faster-whisper and evdev."
+requires-python = ">=3.10"
+dependencies = [
+    "faster-whisper",
+    "sounddevice",
+    "numpy",
+    "scipy",
+    "evdev",
+]
