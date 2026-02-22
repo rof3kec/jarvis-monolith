@@ -30,3 +30,35 @@ Simply hold **`Ctrl + Space`** on any keyboard, speak, and release to type.
 
 ## Architecture & Replicability
 This repo is entirely self-contained. The AI models are saved directly into the `models/` directory, so you can back up this entire folder to an external drive and run it air-gapped on any Linux machine.
+
+## Architecture
+
+```text
+========================================================================
+                      JARVIS MONOLITH ARCHITECTURE                      
+========================================================================
+
+[ Physical Keyboard(s) ]
+       | (Hardware Events: Ctrl+Space)
+       v
++----------------------------------------------------------------------+
+|                         jarvis.py (Python)                           |
+|                                                                      |
+|  1. [evdev Listener]  <-- Detects hotkey across ALL connected boards |
+|           |                                                          |
+|           v (Trigger)                                                |
+|  2. [sounddevice]     <-- Records Mic directly to RAM (NumPy array)  |
+|           |                                                          |
+|           v (Float32 Array)                                          |
+|  3. [faster-whisper]  <-- CTranslate2 Engine (base.en in RAM)        |
+|           |               (Capped at 4 threads, Zero Disk I/O)       |
+|           v (Text string)                                            |
+|  4. [ydotool]         <-- Spawns subprocess to type text directly    |
++----------------------------------------------------------------------+
+       | (CLI Command: ydotool type -d 1 -H 1 "text")
+       v
+[ Virtual Keyboard (ydotoold) ]
+       |
+       v
+[ Active Wayland/X11 Window ]
+```
