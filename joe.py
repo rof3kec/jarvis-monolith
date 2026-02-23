@@ -241,12 +241,12 @@ class JoeMonolith:
             self._silence_start = None
             self._recording_start = time.time()
             play_beep("on")
-            notify("joe is listening...")
+            notify("joe is listening...", use_image=True)
             print("\n  Activated -- recording dictation")
 
         elif new_state == State.TRANSCRIBING:
             play_beep("off")
-            notify("joe stopped listening...")
+            notify("joe stopped listening...", use_image=True)
             print("  Stopped -- transcribing...")
             threading.Thread(
                 target=self._transcribe_dictation, daemon=True
