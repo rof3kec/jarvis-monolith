@@ -36,9 +36,9 @@ SILENCE_THRESHOLD = int(os.environ.get("JOE_SILENCE_THRESHOLD", 250))
 SILENCE_DURATION = 3.0
 SILENCE_GRACE_PERIOD = 2.0
 
-# Fuzzy regex for Whisper's various spellings of "Hi Joe"
+# Fuzzy regex for Whisper's various spellings of "Hi Joe" / "Hey John"
 WAKE_PATTERN = re.compile(
-    r"(hi|hey|high|aye)\s*(joe|john)",
+    r"(hi|hey|high|aye)[\s,.\-!?]*(joe|john)",
     re.IGNORECASE,
 )
 
@@ -391,7 +391,7 @@ class JoeMonolith:
             text = " ".join(s.text for s in segments).strip()
 
             # Strip the wake word from the beginning of the transcription
-            text = re.sub(r"^(hi|hey|high|aye)\s*(joe|john)[\s,.\-!?]*", "", text, flags=re.IGNORECASE).strip()
+            text = re.sub(r"^(hi|hey|high|aye)[\s,.\-!?]*(joe|john)[\s,.\-!?]*", "", text, flags=re.IGNORECASE).strip()
             # Clean up leftover leading punctuation or whitespace
             text = re.sub(r"^[\s,.\-!?]+", "", text).strip()
 
