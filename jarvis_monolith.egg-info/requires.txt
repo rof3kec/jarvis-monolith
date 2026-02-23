@@ -6,6 +6,5 @@ keyboard
 pyautogui
 pyperclip
 win11toast
-torch
-torchvision
-torchaudio
+pystray
+pillow

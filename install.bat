@@ -1,6 +1,7 @@
 @echo off
+cd /d "%~dp0"
 echo ========================================
-echo  Jarvis Monolith - Windows Installer
+echo  Joe Monolith - Windows Installer
 echo ========================================
 echo.
 
@@ -25,6 +26,7 @@ if %errorlevel% neq 0 (
 
 :: Install dependencies
 echo Installing Python dependencies via uv...
+set UV_PYTHON_PREFERENCE=only-system
 uv sync
 if %errorlevel% neq 0 (
     echo ERROR: uv sync failed.
@@ -38,11 +40,11 @@ echo  Installation complete!
 echo ========================================
 echo.
 echo Usage:
-echo   uv run python jarvis.py
+echo   Double-click Joe.vbs or run: uv run python joe.py
 echo.
-echo Hold Ctrl+T to record, release to transcribe and paste.
+echo Say "Hi/Hey/Aye Joe/John" to activate, Ctrl+T to stop.
 echo.
-echo For CUDA acceleration, also install PyTorch with CUDA:
-echo   pip install torch --index-url https://download.pytorch.org/whl/cu121
+echo For CUDA GPU detection, optionally install PyTorch:
+echo   uv pip install torch --index-url https://download.pytorch.org/whl/cu124
 echo.
 pause

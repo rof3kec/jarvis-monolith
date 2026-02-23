@@ -1,4 +1,4 @@
-# Jarvis Monolith
+# Joe Monolith
 
 A zero-latency voice dictation tool for Windows 11. Holds `faster-whisper` (CTranslate2) in RAM, records from your microphone to a memory array, and pastes transcribed text via clipboard. No files on disk. No IPC.
 
@@ -23,7 +23,7 @@ Supports NVIDIA CUDA for GPU-accelerated transcription with automatic CPU fallba
 ## Usage
 
 ```
-uv run python jarvis.py
+uv run python joe.py
 ```
 
 Hold **Ctrl+T** to record, release to transcribe and paste into the active window.
@@ -34,14 +34,14 @@ The tool works across all applications including terminals, editors, and browser
 
 ```text
 ========================================================================
-                      JARVIS MONOLITH ARCHITECTURE
+                        JOE MONOLITH ARCHITECTURE
 ========================================================================
 
 [ Physical Keyboard ]
        | (Win32 Hook: Ctrl+T)
        v
 +----------------------------------------------------------------------+
-|                         jarvis.py (Python)                           |
+|                           joe.py (Python)                            |
 |                                                                      |
 |  1. [keyboard lib]      <-- Global hotkey hook via Win32 API         |
 |           |                                                          |
@@ -62,8 +62,8 @@ The tool works across all applications including terminals, editors, and browser
 ## Configuration
 
 Environment variables:
-- `JARVIS_MODEL` - Whisper model to use (default: `Systran/faster-whisper-base.en`)
-- `JARVIS_THREADS` - CPU threads for inference (default: `4`, only used in CPU mode)
+- `JOE_MODEL` - Whisper model to use (default: `Systran/faster-whisper-base.en`)
+- `JOE_THREADS` - CPU threads for inference (default: `4`, only used in CPU mode)
 
 ## Notes
 

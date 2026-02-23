@@ -1,12 +1,5 @@
-[build-system]
-requires = ["setuptools"]
-build-backend = "setuptools.build_meta"
-
-[tool.setuptools]
-py-modules = ["jarvis"]
-
 [project]
-name = "jarvis-monolith"
+name = "joe-monolith"
 version = "2.0.0"
 description = "A zero-latency voice dictation tool using faster-whisper with CUDA support on Windows."
 requires-python = ">=3.10"
@@ -19,24 +12,11 @@ dependencies = [
     "pyautogui",
     "pyperclip",
     "win11toast",
-    "torch",
-    "torchvision",
-    "torchaudio",
+    "pystray",
+    "pillow",
 ]
 
-[project.scripts]
-jarvis = "jarvis:main"
-
-# Note: For CUDA acceleration, install PyTorch with CUDA support:
-#   pip install torch --index-url https://download.pytorch.org/whl/cu121
-# faster-whisper will automatically use cuDNN/CUDA via CTranslate2 if available.
-
-[tool.uv.sources]
-torch = { index = "pytorch-cu124" }
-torchvision = { index = "pytorch-cu124" }
-torchaudio = { index = "pytorch-cu124" }
-
-[[tool.uv.index]]
-name = "pytorch-cu124"
-url = "https://download.pytorch.org/whl/cu124"
-explicit = true
+# torch is optional -- only used to detect CUDA GPUs.
+# faster-whisper uses CTranslate2 which has its own CUDA support.
+# To enable GPU detection, install separately:
+#   pip install torch --index-url https://download.pytorch.org/whl/cu124
