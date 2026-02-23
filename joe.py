@@ -361,7 +361,9 @@ class JoeMonolith:
     # Ctrl+T handler
     # ------------------------------------------------------------------
     def _on_ctrl_t(self):
-        if self.state == State.RECORDING:
+        if self.state == State.SLEEPING:
+            self._transition_to(State.RECORDING)
+        elif self.state == State.RECORDING:
             self._transition_to(State.TRANSCRIBING)
 
     # ------------------------------------------------------------------
