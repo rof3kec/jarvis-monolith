@@ -42,9 +42,9 @@ WAKE_PATTERN = re.compile(
     re.IGNORECASE,
 )
 
-# Fuzzy regex for Whisper's various spellings of "Stop Joe"
+# Fuzzy regex for Whisper's various spellings of "Fuck off"
 STOP_PATTERN = re.compile(
-    r"(stop)[\s,.\-!?]*(a\s*|the\s*|it\s*)?[\s,.\-!?]*(joe|john)[\s,.\-!?]*",
+    r"(f+u+c*k|frick|freak|fork|folk|luck|duck|buck|truck)[\s,.\-!?]*(off|of|up)?[\s,.\-!?]*",
     re.IGNORECASE,
 )
 
@@ -403,6 +403,8 @@ class JoeMonolith:
 
             if text:
                 type_text(text)
+                time.sleep(0.05)
+                pyautogui.press("enter")
         except Exception as e:
             print(f"  Transcription error: {e}")
             notify("Transcription failed.")
