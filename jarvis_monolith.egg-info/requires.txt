@@ -1,0 +1,11 @@
+faster-whisper
+sounddevice
+numpy
+scipy
+keyboard
+pyautogui
+pyperclip
+win11toast
+torch
+torchvision
+torchaudio

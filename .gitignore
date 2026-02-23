@@ -3,3 +3,4 @@ models/
 __pycache__/
 *.pyc
 .ydotool_socket
+/.claude/settings.local.json

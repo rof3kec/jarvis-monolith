@@ -1,64 +1,72 @@
 # Jarvis Monolith
 
-A zero-latency, CPU-only voice dictation tool designed specifically for Linux (Wayland/X11). 
-It holds `faster-whisper` (CTranslate2) in RAM, records straight from your microphone to a memory array, and uses `ydotool` to inject the text instantly. No files on disk. No IPC.
+A zero-latency voice dictation tool for Windows 11. Holds `faster-whisper` (CTranslate2) in RAM, records from your microphone to a memory array, and pastes transcribed text via clipboard. No files on disk. No IPC.
+
+Supports NVIDIA CUDA for GPU-accelerated transcription with automatic CPU fallback.
 
 ## Installation
 
-1. **Permissions:** Ensure your user is in the `input` group to read keyboard events:
-   ```bash
-   sudo usermod -aG input $USER
+1. **Install dependencies:**
    ```
-2. **Setup Environment:** Use `uv` to pull dependencies safely:
-   ```bash
+   install.bat
+   ```
+   Or manually:
+   ```
    uv sync
    ```
-3. **Daemonize `ydotool`:** (Required for pasting text into Wayland windows):
-   ```bash
-   sudo pacman -S ydotool
-   sudo systemctl enable --now ydotoold
+
+2. **CUDA (optional):** For GPU acceleration, install PyTorch with CUDA:
    ```
-4. **Auto-Start (Optional):**
-   ```bash
-   cp systemd/jarvis.service ~/.config/systemd/user/
-   systemctl --user daemon-reload
-   systemctl --user enable --now jarvis.service
+   pip install torch --index-url https://download.pytorch.org/whl/cu121
    ```
 
 ## Usage
-Simply hold **`Ctrl + Space`** on any keyboard, speak, and release to type.
 
-## Architecture & Replicability
-This repo is entirely self-contained. The AI models are saved directly into the `models/` directory, so you can back up this entire folder to an external drive and run it air-gapped on any Linux machine.
+```
+uv run python jarvis.py
+```
+
+Hold **Ctrl+T** to record, release to transcribe and paste into the active window.
+
+The tool works across all applications including terminals, editors, and browsers.
 
 ## Architecture
 
 ```text
 ========================================================================
-                      JARVIS MONOLITH ARCHITECTURE                      
+                      JARVIS MONOLITH ARCHITECTURE
 ========================================================================
 
-[ Physical Keyboard(s) ]
-       | (Hardware Events: Ctrl+Space)
+[ Physical Keyboard ]
+       | (Win32 Hook: Ctrl+T)
        v
 +----------------------------------------------------------------------+
 |                         jarvis.py (Python)                           |
 |                                                                      |
-|  1. [evdev Listener]  <-- Detects hotkey across ALL connected boards |
+|  1. [keyboard lib]      <-- Global hotkey hook via Win32 API         |
 |           |                                                          |
 |           v (Trigger)                                                |
-|  2. [sounddevice]     <-- Records Mic directly to RAM (NumPy array)  |
+|  2. [sounddevice]       <-- Records mic directly to RAM (NumPy)     |
 |           |                                                          |
 |           v (Float32 Array)                                          |
-|  3. [faster-whisper]  <-- CTranslate2 Engine (base.en in RAM)        |
-|           |               (Capped at 4 threads, Zero Disk I/O)       |
+|  3. [faster-whisper]    <-- CTranslate2 Engine (CUDA or CPU)        |
+|           |                                                          |
 |           v (Text string)                                            |
-|  4. [ydotool]         <-- Spawns subprocess to type text directly    |
+|  4. [pyperclip+paste]   <-- Clipboard copy + Ctrl+V paste           |
 +----------------------------------------------------------------------+
-       | (CLI Command: ydotool type -d 1 -H 1 "text")
+       | (Ctrl+V simulated keystroke)
        v
-[ Virtual Keyboard (ydotoold) ]
-       |
-       v
-[ Active Wayland/X11 Window ]
+[ Active Window ]
 ```
+
+## Configuration
+
+Environment variables:
+- `JARVIS_MODEL` - Whisper model to use (default: `Systran/faster-whisper-base.en`)
+- `JARVIS_THREADS` - CPU threads for inference (default: `4`, only used in CPU mode)
+
+## Notes
+
+- Run as Administrator if the `keyboard` library cannot capture global hotkeys.
+- Models are downloaded to the `models/` directory on first run.
+- The repo is self-contained: back up the entire folder to run it air-gapped on another machine.

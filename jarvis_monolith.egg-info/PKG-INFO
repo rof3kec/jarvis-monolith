@@ -1,0 +1,16 @@
+Metadata-Version: 2.4
+Name: jarvis-monolith
+Version: 2.0.0
+Summary: A zero-latency voice dictation tool using faster-whisper with CUDA support on Windows.
+Requires-Python: >=3.10
+Requires-Dist: faster-whisper
+Requires-Dist: sounddevice
+Requires-Dist: numpy
+Requires-Dist: scipy
+Requires-Dist: keyboard
+Requires-Dist: pyautogui
+Requires-Dist: pyperclip
+Requires-Dist: win11toast
+Requires-Dist: torch
+Requires-Dist: torchvision
+Requires-Dist: torchaudio

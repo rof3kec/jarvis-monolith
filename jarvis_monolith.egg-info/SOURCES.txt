@@ -1,0 +1,9 @@
+README.md
+jarvis.py
+pyproject.toml
+jarvis_monolith.egg-info/PKG-INFO
+jarvis_monolith.egg-info/SOURCES.txt
+jarvis_monolith.egg-info/dependency_links.txt
+jarvis_monolith.egg-info/entry_points.txt
+jarvis_monolith.egg-info/requires.txt
+jarvis_monolith.egg-info/top_level.txt
