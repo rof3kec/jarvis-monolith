@@ -14,6 +14,8 @@ dependencies = [
     "win11toast",
     "pystray",
     "pillow",
+    "transformers>=5.2.0",
+    "accelerate>=1.12.0",
 ]
 
 # torch is optional -- only used to detect CUDA GPUs.
